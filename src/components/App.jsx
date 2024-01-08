@@ -1,5 +1,5 @@
 // Імпорт компонентів і бібліотек
-import React, { Component } from 'react';
+import React, { useState, useEffect } from 'react';
 import { nanoid } from 'nanoid';
 import ContactForm from './phonebook-component/contact-form/ContactForm';
 import ContactList from './phonebook-component/contact-list/ContactList';
@@ -19,31 +19,29 @@ import 'react-toastify/dist/ReactToastify.css';
 
 // Імпорт стилів
 import { AppContainer, Heading, ErrorText, SearchInput } from './appstyles';
-// Головний клас застосунку
-class App extends Component {
-  state = {
-    contacts: [],
-    filter: '',
-    error: '',
-    editContact: null,
-    isContactExistsModalOpen: false,
-    isDeleteConfirmationModalOpen: false,
-    contactToDelete: null,
-    isClearHistoryConfirmationModalOpen: false,
-  };
+// Основна функція застосунку
+const App = () => {
+  const [contacts, setContacts] = useState([]);
+  const [filter, setFilter] = useState('');
+  const [error, setError] = useState('');
+  const [editContact, setEditContact] = useState(null);
+  const [isContactExistsModalOpen, setIsContactExistsModalOpen] =
+    useState(false);
+  const [isDeleteConfirmationModalOpen, setIsDeleteConfirmationModalOpen] =
+    useState(false);
+  const [contactToDelete, setContactToDelete] = useState(null);
+  const [
+    isClearHistoryConfirmationModalOpen,
+    setIsClearHistoryConfirmationModalOpen,
+  ] = useState(false);
 
-  handleChange = (field, value) => {
-    this.setState({ [field]: value });
+  const handleChange = value => {
+    setFilter(value);
   };
-
   // Додавання нового контакту
-  addContact = (name, number) => {
-    const { contacts } = this.state;
-
+  const addContact = (name, number) => {
     if (name.trim() === '' || number.trim() === '') {
-      this.setState({
-        error: 'Please fill in both name and number.',
-      });
+      setError('Please fill in both name and number.');
       return;
     }
 
@@ -52,7 +50,7 @@ class App extends Component {
     );
 
     if (existingContact) {
-      this.setState({ isContactExistsModalOpen: true });
+      setIsContactExistsModalOpen(true);
       return;
     }
 
@@ -62,222 +60,181 @@ class App extends Component {
       number: number.trim(),
     };
 
-    this.setState(prevState => ({
-      contacts: [...prevState.contacts, newContact],
-      filter: '',
-      error: '',
-    }));
+    setContacts(prevContacts => [...prevContacts, newContact]);
+    setFilter('');
+    setError('');
 
     toast.success('Contact added successfully');
   };
 
   // Видалення контакту зі списку
-  deleteContact = contactId => {
-    this.setState({
-      isDeleteConfirmationModalOpen: true,
-      contactToDelete: contactId,
-    });
+  const deleteContact = contactId => {
+    setIsDeleteConfirmationModalOpen(true);
+    setContactToDelete(contactId);
   };
 
-  handleDeleteConfirmation = () => {
-    const { contactToDelete } = this.state;
-    this.setState(prevState => ({
-      contacts: prevState.contacts.filter(
-        contact => contact.id !== contactToDelete
-      ),
-      isDeleteConfirmationModalOpen: false,
-    }));
+  const handleDeleteConfirmation = () => {
+    setContacts(prevContacts =>
+      prevContacts.filter(contact => contact.id !== contactToDelete)
+    );
+    setIsDeleteConfirmationModalOpen(false);
 
     toast.success('Contact deleted successfully');
   };
 
-  handleCloseDeleteConfirmationModal = () => {
-    this.setState({
-      isDeleteConfirmationModalOpen: false,
-      contactToDelete: null,
-    });
+  const handleCloseDeleteConfirmationModal = () => {
+    setIsDeleteConfirmationModalOpen(false);
+    setContactToDelete(null);
   };
 
   // Редагування контакту
-  handleEditClick = contact => {
-    this.setState({ editContact: contact });
+  const handleEditClick = contact => {
+    setEditContact(contact);
   };
 
   // Збереження контакту у списку
-  handleSaveEdit = editedContact => {
-    this.setState(prevState => ({
-      contacts: prevState.contacts.map(contact =>
+  const handleSaveEdit = editedContact => {
+    setContacts(prevContacts =>
+      prevContacts.map(contact =>
         contact.id === editedContact.id ? editedContact : contact
-      ),
-      editContact: null,
-    }));
+      )
+    );
+    setEditContact(null);
 
     toast.success('Contact edited successfully');
   };
 
-  handleContactExistsModalClose = () => {
-    this.setState({ isContactExistsModalOpen: false });
+  const handleContactExistsModalClose = () => {
+    setIsContactExistsModalOpen(false);
   };
 
-  clearHistory = () => {
-    if (this.state.contacts.length === 0) {
+  const clearHistory = () => {
+    if (contacts.length === 0) {
       toast.warning('No contacts to clear.');
       return;
     }
 
-    this.setState({
-      isClearHistoryConfirmationModalOpen: true,
-    });
+    setIsClearHistoryConfirmationModalOpen(true);
   };
 
-  handleClearHistoryConfirmation = () => {
-    this.setState({
-      contacts: [],
-      isClearHistoryConfirmationModalOpen: false,
-    });
+  const handleClearHistoryConfirmation = () => {
+    setContacts([]);
+    setIsClearHistoryConfirmationModalOpen(false);
 
-    localStorage.removeItem('phonebookContacts');
     toast.success('Phonebook history cleared successfully');
   };
 
-  handleCloseClearHistoryConfirmationModal = () => {
-    this.setState({
-      isClearHistoryConfirmationModalOpen: false,
-    });
+  const handleCloseClearHistoryConfirmationModal = () => {
+    setIsClearHistoryConfirmationModalOpen(false);
   };
 
   // Завантаження контактів з локального сховища
-  componentDidMount() {
+  useEffect(() => {
     const storedContacts = localStorage.getItem('phonebookContacts');
     if (storedContacts) {
-      this.setState({ contacts: JSON.parse(storedContacts) });
+      setContacts(JSON.parse(storedContacts));
     }
-  }
+  }, []);
 
-  // Збереження контактів в локальному сховищі
-  componentDidUpdate(prevProps, prevState) {
-    if (this.state.contacts !== prevState.contacts) {
-      localStorage.setItem(
-        'phonebookContacts',
-        JSON.stringify(this.state.contacts)
-      );
-    }
-  }
+  useEffect(() => {
+    localStorage.setItem('phonebookContacts', JSON.stringify(contacts));
+  }, [contacts]);
 
-  // Рендер
-  render() {
-    const {
-      contacts,
-      filter,
-      error,
-      editContact,
-      isContactExistsModalOpen,
-      isDeleteConfirmationModalOpen,
-      isClearHistoryConfirmationModalOpen,
-    } = this.state;
-    // Фільтр по імені
-    const filteredContacts = contacts
-      .filter(contact =>
-        contact.name.toLowerCase().includes(filter.toLowerCase())
-      )
-      .sort((a, b) => a.name.localeCompare(b.name));
+  // Фільтр по імені
+  const filteredContacts = contacts
+    .filter(contact =>
+      contact.name.toLowerCase().includes(filter.toLowerCase())
+    )
+    .sort((a, b) => a.name.localeCompare(b.name));
 
-    return (
-      <React.Fragment>
-        <AppContainer>
-          <Heading variant="h1">Phonebook</Heading>
-          {error && <ErrorText>{error}</ErrorText>}
-          <ContactForm addContact={this.addContact} />
-          <Typography variant="h2">Contacts</Typography>
-          <SearchInput
-            type="text"
-            name="filter"
-            value={filter}
-            onChange={e => this.handleChange('filter', e.target.value)}
-            placeholder="Search contacts..."
-          />
-          <ContactList
-            contacts={filteredContacts}
-            filter={filter}
-            deleteContact={this.deleteContact}
-            handleEditClick={this.handleEditClick}
-          />
-          <Button
-            variant="outlined"
-            color="error"
-            size="small"
-            onClick={this.clearHistory}
-          >
-            Clear History
-          </Button>
-        </AppContainer>
-
-        {editContact && (
-          <EditContact
-            contact={editContact}
-            handleSaveEdit={this.handleSaveEdit}
-            handleClose={() => this.setState({ editContact: null })}
-          />
-        )}
-
-        <DeleteConfirmationModal
-          open={isDeleteConfirmationModalOpen}
-          handleClose={this.handleCloseDeleteConfirmationModal}
-          handleConfirmation={this.handleDeleteConfirmation}
+  return (
+    <React.Fragment>
+      <AppContainer>
+        <Heading variant="h1">Phonebook</Heading>
+        {error && <ErrorText>{error}</ErrorText>}
+        <ContactForm addContact={addContact} />
+        <Typography variant="h2">Contacts</Typography>
+        <SearchInput
+          type="text"
+          name="filter"
+          value={filter}
+          onChange={e => handleChange('filter', e.target.value)}
+          placeholder="Search contacts..."
         />
-
-        <Dialog
-          open={isContactExistsModalOpen}
-          onClose={this.handleContactExistsModalClose}
+        <ContactList
+          contacts={filteredContacts}
+          filter={filter}
+          deleteContact={deleteContact}
+          handleEditClick={handleEditClick}
+        />
+        <Button
+          variant="outlined"
+          color="error"
+          size="small"
+          onClick={clearHistory}
         >
-          <DialogTitle>Contact Exists</DialogTitle>
-          <DialogContent>
-            <DialogContentText>
-              A contact with the name <strong>{filter}</strong> already exists.
-            </DialogContentText>
-          </DialogContent>
-          <DialogActions>
-            <Button
-              onClick={this.handleContactExistsModalClose}
-              color="primary"
-            >
-              OK
-            </Button>
-          </DialogActions>
-        </Dialog>
+          Clear History
+        </Button>
+      </AppContainer>
 
-        <Dialog
-          open={isClearHistoryConfirmationModalOpen}
-          onClose={this.handleCloseClearHistoryConfirmationModal}
-        >
-          <DialogTitle>Clear Phonebook History</DialogTitle>
-          <DialogContent>
-            <DialogContentText>
-              Are you sure you want to clear the phonebook history? This action
-              cannot be undone.
-            </DialogContentText>
-          </DialogContent>
-          <DialogActions>
-            <Button
-              onClick={this.handleCloseClearHistoryConfirmationModal}
-              color="primary"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={this.handleClearHistoryConfirmation}
-              color="primary"
-            >
-              Clear
-            </Button>
-          </DialogActions>
-        </Dialog>
+      {editContact && (
+        <EditContact
+          contact={editContact}
+          handleSaveEdit={handleSaveEdit}
+          handleClose={() => setEditContact(null)}
+        />
+      )}
 
-        <ToastContainer />
-      </React.Fragment>
-    );
-  }
-}
+      <DeleteConfirmationModal
+        open={isDeleteConfirmationModalOpen}
+        handleClose={handleCloseDeleteConfirmationModal}
+        handleConfirmation={handleDeleteConfirmation}
+      />
 
+      <Dialog
+        open={isContactExistsModalOpen}
+        onClose={handleContactExistsModalClose}
+      >
+        <DialogTitle>Contact Exists</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            A contact with the name <strong>{filter}</strong> already exists.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleContactExistsModalClose} color="primary">
+            OK
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={isClearHistoryConfirmationModalOpen}
+        onClose={handleCloseClearHistoryConfirmationModal}
+      >
+        <DialogTitle>Clear Phonebook History</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to clear the phonebook history? This action
+            cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={handleCloseClearHistoryConfirmationModal}
+            color="primary"
+          >
+            Cancel
+          </Button>
+          <Button onClick={handleClearHistoryConfirmation} color="primary">
+            Clear
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <ToastContainer />
+    </React.Fragment>
+  );
+};
 // Експорт
 export default App;
