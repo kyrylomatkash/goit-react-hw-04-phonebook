@@ -8,18 +8,22 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 
+// Основна функція компоненту
 const EditContact = ({ contact, handleSaveEdit, handleClose }) => {
   const [editedName, setEditedName] = useState(contact.name);
   const [editedNumber, setEditedNumber] = useState(contact.number);
 
+  // Зміна імені контакту
   const handleNameChange = e => {
     setEditedName(e.target.value);
   };
 
+  // Зміна номеру контакту
   const handleNumberChange = e => {
     setEditedNumber(e.target.value);
   };
 
+  // Збереження змін
   const handleSave = () => {
     const editedContact = {
       ...contact,
