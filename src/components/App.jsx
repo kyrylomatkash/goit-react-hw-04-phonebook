@@ -72,7 +72,7 @@ const App = () => {
     setIsDeleteConfirmationModalOpen(true);
     setContactToDelete(contactId);
   };
-
+  // Підтвердження видалення контакту
   const handleDeleteConfirmation = () => {
     setContacts(prevContacts =>
       prevContacts.filter(contact => contact.id !== contactToDelete)
