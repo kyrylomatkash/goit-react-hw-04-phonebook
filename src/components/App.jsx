@@ -107,7 +107,7 @@ const App = () => {
   const handleContactExistsModalClose = () => {
     setIsContactExistsModalOpen(false);
   };
-
+  // Очищення історії контактів і видалення з локального сховища
   const clearHistory = () => {
     if (contacts.length === 0) {
       toast.warning('No contacts to clear.');
@@ -116,7 +116,7 @@ const App = () => {
 
     setIsClearHistoryConfirmationModalOpen(true);
   };
-
+  // Підтвердження очищення історії контактів
   const handleClearHistoryConfirmation = () => {
     setContacts([]);
     setIsClearHistoryConfirmationModalOpen(false);
