@@ -35,9 +35,6 @@ const App = () => {
     setIsClearHistoryConfirmationModalOpen,
   ] = useState(false);
 
-  const handleChange = value => {
-    setFilter(value);
-  };
   // Додавання нового контакту
   const addContact = (name, number) => {
     if (name.trim() === '' || number.trim() === '') {
@@ -147,6 +144,11 @@ const App = () => {
     )
     .sort((a, b) => a.name.localeCompare(b.name));
 
+  const handleChange = (fieldName, value) => {
+    if (fieldName === 'filter') {
+      setFilter(value);
+    }
+  };
   return (
     <React.Fragment>
       <AppContainer>
